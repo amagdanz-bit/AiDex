@@ -431,6 +431,7 @@ const CODE_EXTS = new Set([
     '.java', '.go', '.php', '.rb', '.rake',
     '.tf', '.tfvars', '.hcl',
     '.kt', '.kts', '.swift',
+    '.sql',
 ]);
 
 function estimateFileCount(dirPath: string): number {

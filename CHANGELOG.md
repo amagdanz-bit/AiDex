@@ -2,6 +2,12 @@
 
 All notable changes to AiDex will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **SQL support** — `.sql` files are indexed via `@derekstride/tree-sitter-sql`. `CREATE TABLE` (as `struct`), `VIEW`, `MATERIALIZED VIEW`, `TYPE` (`enum` for `AS ENUM`) and `SEQUENCE` become types; `CREATE FUNCTION` and `CREATE TRIGGER` become methods with a prototype cut at the body (`AS $$`, `BEGIN`, `EXECUTE FUNCTION`). Schema-qualified names are kept (`public.orders`), quoted identifiers (`"Users"`, `` `users` ``, `[Users]`) are indexed bare, built-in functions (`COUNT`, `COALESCE`, `now`…) are filtered case-insensitively. The grammar ships no prebuilt binaries, so it is an **optional dependency**: if it can't be compiled, AiDex installs and runs as before and skips `.sql` files. Brings the language count to **15**.
+
 ## [2.4.0] - 2026-09-25
 
 Dashboard controls can now be pushed to your program instead of polled.

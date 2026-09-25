@@ -242,6 +242,7 @@ const CODE_EXTENSIONS = new Set([
     '.java', '.go', '.php', '.rb', '.rake',
     '.tf', '.tfvars', '.hcl',
     '.kt', '.kts', '.swift',
+    '.sql',
 ]);
 
 const CONFIG_EXTENSIONS = new Set([

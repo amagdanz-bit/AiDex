@@ -240,6 +240,7 @@ function detectLanguages(queries: ReturnType<typeof createQueries>): string[] {
         '.kt': 'Kotlin',
         '.kts': 'Kotlin',
         '.swift': 'Swift',
+        '.sql': 'SQL',
     };
 
     const languages = new Set<string>();
