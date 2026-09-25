@@ -491,6 +491,7 @@ export function readProjectStats(projectPath: string): ProjectStats | null {
             '.java': 'Java', '.go': 'Go', '.php': 'PHP', '.rb': 'Ruby', '.rake': 'Ruby',
             '.tf': 'HCL/Terraform', '.tfvars': 'HCL/Terraform', '.hcl': 'HCL/Terraform',
             '.kt': 'Kotlin', '.kts': 'Kotlin', '.swift': 'Swift',
+            '.sql': 'SQL',
         };
 
         const languages = [...new Set(

@@ -3,6 +3,7 @@
  */
 
 import Parser from 'tree-sitter';
+import { createRequire } from 'module';
 
 // Language grammars
 import CSharp from 'tree-sitter-c-sharp';
@@ -19,10 +20,22 @@ import Hcl from '@tree-sitter-grammars/tree-sitter-hcl';
 import Kotlin from '@tree-sitter-grammars/tree-sitter-kotlin';
 import Swift from 'tree-sitter-swift';
 
+// SQL grammar is an optional dependency: it ships no prebuilt binaries and needs a
+// C compiler at install time. If it failed to install, .sql files are simply skipped.
+const require = createRequire(import.meta.url);
+function loadOptionalGrammar(pkg: string): unknown | null {
+    try {
+        return require(pkg);
+    } catch {
+        return null;
+    }
+}
+const Sql = loadOptionalGrammar('@derekstride/tree-sitter-sql');
+
 export type SupportedLanguage =
     | 'csharp' | 'typescript' | 'javascript' | 'rust' | 'python'
     | 'c' | 'cpp' | 'java' | 'go' | 'php' | 'ruby' | 'hcl' | 'astro'
-    | 'kotlin' | 'swift';
+    | 'kotlin' | 'swift' | 'sql';
 
 // Grammar packages export types incompatible with tree-sitter 0.25's Parser.Language interface.
 // All grammars work at runtime via NAPI — this is a type declaration mismatch only.
@@ -44,6 +57,7 @@ const GRAMMAR_MAP: Record<string, Parser.Language> = {
     hcl: asLang(Hcl),
     kotlin: asLang(Kotlin),
     swift: asLang(Swift),
+    ...(Sql ? { sql: asLang(Sql) } : {}),
     tsx: asLang(TypeScript.tsx),
     jsx: asLang(TypeScript.tsx), // tsx grammar handles JSX too
     astro: asLang(TypeScript.tsx), // parse extracted frontmatter as TSX
@@ -80,6 +94,7 @@ const EXTENSION_MAP: Record<string, SupportedLanguage> = {
     '.kt': 'kotlin',
     '.kts': 'kotlin',
     '.swift': 'swift',
+    ...(Sql ? { '.sql': 'sql' as const } : {}),
 };
 
 // Cached parsers per language (includes 'tsx' and 'jsx' as virtual keys)

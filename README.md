@@ -50,7 +50,7 @@ AiDex is an MCP server that gives AI coding assistants a memory, semantic search
 | **Screenshots** | `screenshot`, `windows` | Cross-platform screen capture with LLM optimization — scale + color reduction saves up to 95% tokens |
 | **Viewer** | `viewer` | Interactive browser UI with file tree, signatures, tasks, logs, search, and live reload |
 
-**14 languages** — C#, TypeScript, JavaScript, Rust, Python, C, C++, Java, Go, PHP, Ruby, HCL/Terraform, Kotlin, Swift — plus Astro frontmatter
+**15 languages** — C#, TypeScript, JavaScript, Rust, Python, C, C++, Java, Go, PHP, Ruby, HCL/Terraform, Kotlin, Swift, SQL — plus Astro frontmatter
 
 <details>
 <summary><strong>Quick Examples</strong> — see it in action</summary>
@@ -246,7 +246,10 @@ The index lives in `.aidex/index.db` (SQLite) - fast, portable, no external depe
 | HCL/Terraform | `.tf`, `.tfvars`, `.hcl` |
 | Kotlin | `.kt`, `.kts` |
 | Swift | `.swift` |
+| SQL | `.sql` (optional grammar, see below) |
 | Astro | `.astro` (TypeScript frontmatter) |
+
+**SQL:** tables, views, materialized views, types and sequences are indexed as types; `CREATE FUNCTION` and `CREATE TRIGGER` as methods. The grammar (`@derekstride/tree-sitter-sql`) is an optional dependency without prebuilt binaries — it compiles at install time and needs a C compiler (on Windows: Visual Studio Build Tools). If it can't be built, AiDex installs anyway and simply skips `.sql` files. `CREATE PROCEDURE` and T-SQL/PL-SQL procedural blocks aren't covered by the grammar; the rest of such a file is still indexed.
 
 ## Quick Start
 
@@ -393,7 +396,7 @@ Do I want to search code?
 | Screenshots | `aidex_screenshot`, `aidex_windows` | Screen capture with LLM optimization (scale + color reduction, no index needed) |
 | Viewer | `aidex_viewer` | Interactive browser UI with file tree, signatures, tasks, and live logs |
 
-**14 languages:** C#, TypeScript, JavaScript, Rust, Python, C, C++, Java, Go, PHP, Ruby, HCL/Terraform, Kotlin, Swift — plus Astro frontmatter
+**15 languages:** C#, TypeScript, JavaScript, Rust, Python, C, C++, Java, Go, PHP, Ruby, HCL/Terraform, Kotlin, Swift, SQL — plus Astro frontmatter
 
 ### Session Notes
 

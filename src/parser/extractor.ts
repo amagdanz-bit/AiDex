@@ -5,6 +5,7 @@
 import type Parser from 'tree-sitter';
 import { detectLanguage, parseFile, type SupportedLanguage } from './tree-sitter.js';
 import { getLanguageConfig } from './languages/index.js';
+import { unquoteIdentifier } from './languages/sql.js';
 import type { LineRow } from '../db/queries.js';
 
 // ============================================================
@@ -156,7 +157,8 @@ export function extract(sourceCode: string, filePath: string): ExtractionResult 
         // Check for identifiers
         if (config.identifierNodes.has(node.type)) {
             seenCode = true;
-            const term = node.text;
+            // SQL: "Users", `users`, [Users] → index the bare name
+            const term = language === 'sql' ? unquoteIdentifier(node.text) : node.text;
 
             // Filter out keywords and very short terms
             if (term.length >= 2 && !config.isKeyword(term)) {
@@ -241,6 +243,7 @@ function extractCommentText(commentText: string): string {
         .replace(/\s*\*+\/$/g, '')           // Remove */
         .replace(/^\s*\*\s?/gm, '')          // Remove * at start of lines
         .replace(/^#+\s*/gm, '')             // Remove # (Python)
+        .replace(/^--\s*/gm, '')             // Remove -- (SQL)
         .trim();
 }
 
@@ -293,6 +296,16 @@ function extractTypeInfo(node: Parser.SyntaxNode, language: SupportedLanguage): 
                 lineNumber: node.startPosition.row + 1,
             };
         }
+    }
+
+    // SQL: CREATE TABLE/VIEW/TYPE/SEQUENCE — name is the object_reference (schema.name)
+    if (language === 'sql') {
+        const name = findSqlObjectName(node);
+        if (!name) return null;
+        let kind: ExtractedType['kind'] = 'type';
+        if (node.type === 'create_table') kind = 'struct';
+        else if (node.type === 'create_type' && node.children.some(c => c.type === 'enum_elements')) kind = 'enum';
+        return { name, kind, lineNumber: node.startPosition.row + 1 };
     }
 
     // Prefer the grammar's `name` field when present (robust across grammars,
@@ -355,6 +368,23 @@ function findCFunctionName(node: Parser.SyntaxNode): string | null {
 }
 
 /**
+ * Find the object name of an SQL CREATE statement.
+ * The name is the first `object_reference` child (e.g. `public.users`), with each
+ * part unquoted. Falls back to a direct `identifier` child (e.g. CREATE INDEX name).
+ */
+function findSqlObjectName(node: Parser.SyntaxNode): string | null {
+    const ref = node.children.find(c => c.type === 'object_reference');
+    if (ref) {
+        const parts = ref.children
+            .filter(c => c.type === 'identifier')
+            .map(c => unquoteIdentifier(c.text));
+        if (parts.length > 0) return parts.join('.');
+    }
+    const ident = node.children.find(c => c.type === 'identifier');
+    return ident ? unquoteIdentifier(ident.text) : null;
+}
+
+/**
  * Extract method information from a method declaration node
  */
 function extractMethodInfo(
@@ -384,6 +414,11 @@ function extractMethodInfo(
     // or reference_declarator (C++). Walk down to find it.
     if ((language === 'c' || language === 'cpp') && node.type === 'function_definition') {
         name = findCFunctionName(node);
+    }
+
+    // SQL: CREATE FUNCTION / CREATE TRIGGER — name is the first object_reference
+    if (language === 'sql') {
+        name = findSqlObjectName(node);
     }
 
     // Prefer the grammar's `name` field when present. Needed for Swift, where
@@ -442,6 +477,15 @@ function extractMethodInfo(
         if (line.includes('{') || line.includes('=>')) {
             prototype = prototype.replace(/\s*\{.*$/, '').replace(/\s*=>.*$/, '').trim();
             break;
+        }
+
+        // SQL: stop where the routine body starts (AS $$ / AS ' / BEGIN / EXECUTE)
+        if (language === 'sql') {
+            const bodyStart = prototype.search(/\s+(AS\s+(\$\w*\$|')|BEGIN\b|EXECUTE\s+(FUNCTION|PROCEDURE)\b)/i);
+            if (bodyStart !== -1) {
+                prototype = prototype.slice(0, bodyStart).trim();
+                break;
+            }
         }
     }
 

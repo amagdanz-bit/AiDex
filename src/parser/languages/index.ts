@@ -16,6 +16,7 @@ import * as ruby from './ruby.js';
 import * as hcl from './hcl.js';
 import * as kotlin from './kotlin.js';
 import * as swift from './swift.js';
+import * as sql from './sql.js';
 
 export interface LanguageConfig {
     isKeyword: (term: string) => boolean;
@@ -129,6 +130,14 @@ const configs: Record<SupportedLanguage, LanguageConfig> = {
         methodNodes: swift.SWIFT_METHOD_NODES,
         typeNodes: swift.SWIFT_TYPE_NODES,
         propertyNodes: swift.SWIFT_PROPERTY_NODES,
+    },
+    sql: {
+        isKeyword: sql.isKeyword,
+        identifierNodes: sql.SQL_IDENTIFIER_NODES,
+        commentNodes: sql.SQL_COMMENT_NODES,
+        methodNodes: sql.SQL_METHOD_NODES,
+        typeNodes: sql.SQL_TYPE_NODES,
+        propertyNodes: sql.SQL_PROPERTY_NODES,
     },
     astro: {
         // Astro frontmatter is TypeScript; reuse TypeScript config
